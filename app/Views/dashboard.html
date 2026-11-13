@@ -1,0 +1,56 @@
+<!doctype html><html lang="en" class="dark"><head><title>Operator - Tessera</title>{{head}}<meta name="csrf" content="{{csrf}}"></head>
+<body class="min-h-screen font-sans text-slate-200">
+{{header:admin}}
+<main class="mx-auto max-w-6xl space-y-8 px-4 py-8">
+  <div class="flex items-center justify-between"><h1 class="text-3xl font-bold text-white">Operator console</h1><a href="/logout" class="text-sm text-slate-400 hover:text-white">Log out</a></div>
+  <section id="stats" class="grid grid-cols-2 gap-3 md:grid-cols-4"></section>
+
+  <section class="card"><h2 class="mb-3 text-lg font-semibold text-white">KYC review queue</h2><div id="kyc"></div></section>
+  <section class="card"><h2 class="mb-1 text-lg font-semibold text-white">AML alerts</h2><p class="mb-3 text-sm text-slate-400">Raised by transaction monitoring. Freezing sends an on-chain transaction from your operator wallet: the wallet can no longer move shares or claim yield.</p><div id="aml"></div></section>
+
+  <section class="card">
+    <h2 class="mb-1 text-lg font-semibold text-white">Issue a new asset</h2>
+    <p class="mb-4 text-sm text-slate-400">Builds the off-chain dossier, hashes it, then your operator wallet (the factory owner) deploys the share token with that hash committed on-chain.</p>
+    <form id="asset-form" class="grid gap-3 md:grid-cols-3">
+      <div><label class="label">Name</label><input name="name" class="input" required value="Rosebank Retail Centre"></div>
+      <div><label class="label">Symbol</label><input name="symbol" class="input" required value="RBRC"></div>
+      <div><label class="label">Class</label><select name="asset_class" class="input"><option value="0">Real estate</option><option value="1">Private credit</option><option value="2">Green energy</option><option value="3">Luxury &amp; collectibles</option><option value="4">Other</option></select></div>
+      <div><label class="label">Issuer wallet</label><input name="issuer" class="input font-mono" placeholder="0x… (property manager / borrower)" required></div>
+      <div><label class="label">Total shares</label><input name="total_shares" type="number" class="input" value="1000000"></div>
+      <div><label class="label">Min tier (1 retail, 2 accredited)</label><select name="min_tier" class="input"><option value="1">1 - Retail</option><option value="2">2 - Accredited</option></select></div>
+      <div><label class="label">Valuation (whole currency)</label><input name="valuation" type="number" class="input" value="25000000"></div>
+      <div><label class="label">Target yield (% p.a.)</label><input name="yield" type="number" step="0.1" class="input" value="9.5"></div>
+      <div><label class="label">Max per-wallet cap (% of supply, 0 = none)</label><input name="cap" type="number" step="0.5" class="input" value="10"></div>
+      <div class="md:col-span-2"><label class="label">Location</label><input name="location" class="input" value="Rosebank, Johannesburg"></div>
+      <div><label class="label">Legal structure</label><input name="legal_structure" class="input" value="SPV (Pty) Ltd, title deed held in trust"></div>
+      <div class="md:col-span-3"><label class="label">Description</label><textarea name="description" rows="2" class="input">Grade-A retail centre with long-dated anchor tenants and indexed rentals.</textarea></div>
+      <div class="md:col-span-3"><button class="btn-gold">Prepare &amp; deploy with my wallet</button></div>
+    </form>
+  </section>
+
+  <section class="card">
+    <h2 class="mb-1 text-lg font-semibold text-white">Proof of backing <span class="pill ml-2 border-gold/40 text-gold">custodian is simulated</span></h2>
+    <p class="mb-4 text-sm text-slate-400">The custodian signs how many shares are backed; your wallet relays it on-chain. If it reports fewer backed shares than exist, the marketplace refuses every purchase of that asset until a full attestation is published. Use this to demo the failure case.</p>
+    <div class="grid gap-3 md:grid-cols-3"><div class="md:col-span-3"><label class="label">Asset</label><select id="bk-asset" class="input"></select></div>
+      <div class="md:col-span-3 flex flex-wrap gap-2"><button id="bk-full" class="btn-gold">Attest fully backed</button><button id="bk-short" class="btn-danger">Simulate 10% reserve shortfall</button></div>
+      <div id="bk-status" class="md:col-span-3 text-sm text-slate-400"></div></div>
+  </section>
+
+  <section class="card">
+    <h2 class="mb-1 text-lg font-semibold text-white">Recover a lost or frozen wallet</h2>
+    <p class="mb-4 text-sm text-slate-400">After re-verifying the same person on a new wallet (it must already be registered on-chain), move all of the old wallet's shares and unclaimed yield to it. Works on frozen wallets; refuses any wallet that is not KYC-eligible. Only the asset owner (operator wallet) can do this, and the reference is recorded on-chain.</p>
+    <form id="recover-form" class="grid gap-3 md:grid-cols-3">
+      <div class="md:col-span-3"><label class="label">Asset</label><select id="rc-asset" class="input"></select></div>
+      <div><label class="label">Old / lost wallet</label><input name="lost" class="input font-mono" placeholder="0x…" required></div>
+      <div><label class="label">New verified wallet</label><input name="replacement" class="input font-mono" placeholder="0x…" required></div>
+      <div><label class="label">Case reference (hashed on-chain)</label><input name="ref" class="input" placeholder="e.g. lost-keys ticket 77" required></div>
+      <div class="md:col-span-3"><button class="btn-gold">Recover with my operator wallet</button></div>
+    </form>
+  </section>
+
+  <section class="card"><div class="mb-3 flex items-center justify-between"><h2 class="text-lg font-semibold text-white">Audit log</h2>
+    <div class="flex gap-2"><button id="verify-chain" class="btn-ghost">Verify chain</button><button id="anchor" class="btn-gold">Anchor on-chain</button></div></div>
+    <p id="audit-status" class="mb-3 text-sm text-slate-400"></p><div id="audit" class="max-h-96 overflow-auto"></div></section>
+</main>
+<script src="/js/dashboard.js"></script>
+</body></html>

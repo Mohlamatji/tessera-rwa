@@ -1,0 +1,19 @@
+{
+  "name": "tessera-rwa",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Tessera - fractional real-world-asset marketplace: KYC/AML-gated ERC-20 shares, automated on-chain yield, instant secondary liquidity.",
+  "type": "module",
+  "engines": { "node": ">=22.13" },
+  "scripts": {
+    "start": "node index.js",
+    "demo": "cd chain && npm run demo",
+    "compile": "cd chain && npm run compile",
+    "test": "node --test tests/*.test.js && cd chain && npm test",
+    "test:unit": "node --test tests/*.test.js",
+    "build:css": "cd build && npm run build:css"
+  },
+  "dependencies": {
+    "ethers": "6.13.4"
+  }
+}

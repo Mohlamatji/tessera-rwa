@@ -1,0 +1,24 @@
+<!doctype html><html lang="en" class="dark"><head><title>Tessera - Fractional real-world assets</title>{{head}}</head>
+<body class="min-h-screen font-sans text-slate-200">
+{{header:market}}
+<main class="mx-auto max-w-6xl px-4 py-10">
+  <section class="mb-10 grid gap-6 md:grid-cols-5 md:items-end">
+    <div class="md:col-span-3">
+      <p class="mb-2 text-sm font-medium text-gold">Real-world assets, on-chain</p>
+      <h1 class="text-4xl font-bold leading-tight text-white">Own a slice of buildings, loans and solar farms.</h1>
+      <p class="mt-3 max-w-xl text-slate-400">Fractional shares you can trade instantly, with rent and interest paid straight to your wallet by smart contract. Every investor is KYC/AML-verified on-chain.</p>
+      <div class="mt-5 flex gap-3"><a href="/onboarding" class="btn-gold">Get verified</a><a href="#assets" class="btn-ghost">Browse assets</a></div>
+    </div>
+    <div id="stats" class="grid grid-cols-2 gap-3 md:col-span-2"></div>
+  </section>
+
+  <section id="assets">
+    <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+      <h2 class="text-xl font-semibold text-white">Assets</h2>
+      <div id="filters" class="flex flex-wrap gap-2"></div>
+    </div>
+    <div id="grid" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"><div class="card text-slate-400">Loading…</div></div>
+  </section>
+</main>
+<script src="/js/marketplace.js"></script>
+</body></html>

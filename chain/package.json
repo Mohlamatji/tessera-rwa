@@ -1,0 +1,23 @@
+{
+  "name": "tessera-chain",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Smart contracts + tooling for Tessera: compliance registry, fractional asset shares with on-chain yield, marketplace, audit anchoring",
+  "type": "module",
+  "scripts": {
+    "compile": "node scripts/compile.js",
+    "deploy": "node scripts/deploy.js",
+    "test": "node scripts/compile.js && node --test test/*.test.js",
+    "demo": "node scripts/compile.js && node scripts/demo.mjs",
+    "keeper": "node scripts/keeper.js"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "5.0.2",
+    "ethers": "6.13.4",
+    "solc": "0.8.26",
+    "xrpl": "^5.3.0"
+  },
+  "devDependencies": {
+    "ganache": "7.9.2"
+  }
+}

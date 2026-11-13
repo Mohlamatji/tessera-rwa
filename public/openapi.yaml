@@ -1,0 +1,56 @@
+openapi: 3.0.3
+info:
+  title: Tessera API
+  version: 1.0.0
+  description: >
+    Fractional real-world-asset marketplace. Investor endpoints use a wallet session: POST /api/auth/nonce,
+    sign the returned message with your wallet (personal_sign), POST /api/auth/verify, then send
+    `Authorization: Bearer tsr_...`. Admin endpoints use the operator session cookie plus an X-CSRF-Token header on writes.
+servers: [{ url: http://localhost:8000 }]
+components:
+  securitySchemes:
+    wallet: { type: http, scheme: bearer, description: Wallet session token (tsr_...) }
+    admin: { type: apiKey, in: cookie, name: tsr_admin }
+paths:
+  /api/auth/nonce:
+    post: { summary: "Single-use sign-in message for a wallet", requestBody: { content: { application/json: { schema: { type: object, required: [address], properties: { address: { type: string } } } } } }, responses: { '200': { description: message + nonce } } }
+  /api/auth/verify:
+    post: { summary: "Exchange a signed message for a session token", requestBody: { content: { application/json: { schema: { type: object, required: [address, signature] } } } }, responses: { '200': { description: token }, '401': { description: bad signature } } }
+  /api/consent/grant:
+    post: { summary: "Consent to KYC processing", security: [{ wallet: [] }], responses: { '200': { description: ok } } }
+  /api/kyc/submit:
+    post:
+      summary: Submit identity details; returns an explainable decision, a signed receipt and (if approved) an EIP-712 claim to register on-chain
+      security: [{ wallet: [] }]
+      requestBody: { content: { application/json: { schema: { type: object, required: [full_name, dob, country, id_number], properties: { full_name: { type: string }, dob: { type: string, example: '1990-05-15' }, country: { type: string, example: ZA }, id_type: { type: string, enum: [za_id, passport] }, id_number: { type: string }, investor_type: { type: string, enum: [retail, accredited] }, intended_investment_cents: { type: integer }, accreditation: { type: object }, source_of_funds: { type: string }, source_of_funds_evidence_ref: { type: string } } } } } }
+      responses: { '200': { description: decision }, '403': { description: consent required }, '409': { description: wallet linked to another person }, '429': { description: rate limited } }
+  /api/kyc/status:
+    get: { summary: "Current KYC state and live on-chain tier", security: [{ wallet: [] }], responses: { '200': { description: status } } }
+  /api/kyc/registered:
+    post: { summary: "Confirm the ComplianceRegistry.register tx (the server verifies the receipt itself)", security: [{ wallet: [] }], responses: { '200': { description: registered }, '422': { description: tx did not register this wallet } } }
+  /api/data-subject/export:
+    get: { summary: "Export all personal data held (POPIA/GDPR)", security: [{ wallet: [] }], responses: { '200': { description: data } } }
+  /api/data-subject/delete:
+    post: { summary: "Erase personal data; refused under an open compliance review", security: [{ wallet: [] }], responses: { '200': { description: erased }, '409': { description: regulatory hold } } }
+  /api/chain/config:
+    get: { summary: "Chain id, contract addresses, settlement token, fee", responses: { '200': { description: config } } }
+  /api/chain/verify-receipt:
+    post: { summary: "Public verification of a KYC receipt, on-chain registration and audit-log anchoring. No personal data.", responses: { '200': { description: result } } }
+  /api/market/assets:
+    get: { summary: "All assets with price, yield and liquidity stats", responses: { '200': { description: assets } } }
+  /api/market/assets/{address}:
+    get: { summary: "Asset detail with order book, trades, yield history", parameters: [{ name: address, in: path, required: true, schema: { type: string } }], responses: { '200': { description: asset } } }
+  /api/portfolio:
+    get: { summary: "Positions and claimable yield, read live from the chain", security: [{ wallet: [] }], responses: { '200': { description: portfolio } } }
+  /api/payouts:
+    get: { summary: "Your cash-out history (stablecoin to mobile money) plus the available networks and fee", security: [{ wallet: [] }], responses: { '200': { description: payouts } } }
+    post: { summary: "Request a mobile-money payout for a stablecoin transfer you already sent on-chain to the off-ramp address. The amount is read from the chain, the payout provider is simulated unless a real adapter is configured.", security: [{ wallet: [] }], requestBody: { content: { application/json: { schema: { type: object, required: [tx_hash, msisdn, network], properties: { tx_hash: { type: string }, msisdn: { type: string, example: "+27821234567" }, network: { type: string, example: "MTN MoMo" } } } } } }, responses: { '200': { description: payout }, '403': { description: not a verified investor }, '409': { description: transfer already paid out }, '422': { description: invalid transfer or input } } }
+  /api/admin/backing/prepare: { post: { summary: "MOCK custodian signs a proof-of-backing attestation (full or simulated shortfall) for the operator wallet to relay to BackingOracle", security: [{ admin: [] }], requestBody: { content: { application/json: { schema: { type: object, required: [asset, mode], properties: { asset: { type: string }, mode: { type: string, enum: [full, shortfall] } } } } } }, responses: { '200': { description: attestation + signature }, '422': { description: bad input or no custodian configured } } } }
+  /api/admin/stats: { get: { summary: "Operator statistics", security: [{ admin: [] }], responses: { '200': { description: ok } } } }
+  /api/admin/kyc: { get: { summary: "KYC decisions with factors and gates", security: [{ admin: [] }], responses: { '200': { description: ok } } } }
+  /api/admin/kyc/{id}/resolve: { post: { summary: "Approve or reject a decision under review", security: [{ admin: [] }], responses: { '200': { description: ok } } } }
+  /api/admin/aml/alerts: { get: { summary: "AML monitoring alerts", security: [{ admin: [] }], responses: { '200': { description: ok } } } }
+  /api/admin/assets/prepare: { post: { summary: "Hash an asset dossier and return the factory createAsset arguments", security: [{ admin: [] }], responses: { '200': { description: ok } } } }
+  /api/admin/audit/verify: { get: { summary: "Verify the hash-chained audit log", security: [{ admin: [] }], responses: { '200': { description: ok } } } }
+  /api/admin/chain/anchor/prepare: { get: { summary: "Next Merkle root to anchor on-chain", security: [{ admin: [] }], responses: { '200': { description: ok } } } }
+  /api/admin/chain/anchor/record: { post: { summary: "Record an anchor after verifying the on-chain event against the local log", security: [{ admin: [] }], responses: { '200': { description: ok } } } }
